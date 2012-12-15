@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Audio;
 
 namespace LudumDare25
 {
@@ -31,7 +32,7 @@ namespace LudumDare25
             }
         }
 
-        public float Lightening()
+        public float Lightening(List<SoundEffect> thunder)
         {
             if (random.Next(120) == 60 && count > 5)
             {
@@ -44,6 +45,7 @@ namespace LudumDare25
                 } while (pos < 170 || !randDudes[hit].inCrowd);
                 randDudes[hit].happy = 0;
                 randDudes[hit].inCrowd = false;
+                thunder[random.Next(3)].Play();
                 count -= 1;
                 return randDudes[hit].Position.X;
             }
@@ -60,7 +62,7 @@ namespace LudumDare25
                 {
                     hit = random.Next(randDudes.Count);
                     pos = randDudes[hit].Position.X;
-                } while (!randDudes[hit].inCrowd);
+                } while (!randDudes[hit].inCrowd && randDudes[hit].rotation != 0);
                 randDudes[hit].blowOver();
             }
         }

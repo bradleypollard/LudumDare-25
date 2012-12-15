@@ -18,7 +18,8 @@ namespace LudumDare25
         private int posInc;
         private Cloud Player;
         public bool inCrowd { get; set; }
-        private float rotation;
+        public float rotation { get; set; }
+        private int jumper;
         
         public Dude(Texture2D texture, Random PassRandom, Cloud player)
         {
@@ -32,6 +33,7 @@ namespace LudumDare25
             Player = player;
             inCrowd = true;
             rotation = 0;
+            jumper = 0;
         }
 
         public void blowOver()
@@ -49,12 +51,34 @@ namespace LudumDare25
         {
             if (frames == 15)
             {
-                if (rotation != 0 && random.Next(4) == 1)
+                if (rotation != 0 && random.Next(4) == 1) //get up from wind
                 {
                     rotation = 0;
                     Position = new Vector2(Position.X, Position.Y - 16); 
                 }
+
+                //jump if doing nowt
+                if (jumper != 0 || (happy > 50 && random.Next(4) == 1 && posInc == 0))
+                {
+                    if (jumper == 0 || jumper == 1)
+                    {
+                        Position = new Vector2(Position.X, Position.Y - 8);
+                        jumper += 1;
+                    }
+                    else if (jumper == 2)
+                    {
+                        Position = new Vector2(Position.X, Position.Y + 8);
+                        jumper += 1;
+                    }
+                    else
+                    {
+                        Position = new Vector2(Position.X, Position.Y + 8);
+                        jumper = 0;
+                    }
+                }
+                //reset frame counter
                 frames = 0;
+                //decrease happiness
                 if (happy > 0 && (Player.isRaining || Player.isWind || Player.isLightening) && inCrowd)
                 {
                     if (Player.isRaining)
@@ -74,6 +98,7 @@ namespace LudumDare25
                         happy = 0;
                     }
                 }
+                //or increase when not weather
                 else if (happy < 100 && !Player.isRaining && !Player.isWind && !Player.isLightening && inCrowd)
                 {
                     happy += 1;
@@ -85,7 +110,7 @@ namespace LudumDare25
             }
             else
             {
-                frames += 1;
+                frames += 1; //increase framecounter
                 if (happy > 0 && posInc > 0 && Position.X > -4 && inCrowd && rotation == 0) //move dude right till in position
                 {
                     Position = new Vector2(Position.X + random.Next(2) + 1, Position.Y + (int)random.NextDouble());
@@ -96,7 +121,7 @@ namespace LudumDare25
                     Position = new Vector2(Position.X - 1, Position.Y);
                     posInc += random.Next(2);
                 }
-                else if (happy < 1 && Position.X <= -4 && inCrowd)
+                else if (happy < 1 && Position.X <= -4 && inCrowd) //if off screen remove from crowd
                 {
                     inCrowd = false;
                     happy = 0;

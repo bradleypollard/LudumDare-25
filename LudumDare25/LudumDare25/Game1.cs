@@ -34,6 +34,9 @@ namespace LudumDare25
         private Texture2D light;
         LeafEngine leafEngine;
         private Texture2D bar0;
+        private List<SoundEffect> thunder;
+        private SoundEffectInstance rain;
+        private SoundEffectInstance wind;
 
         public Ludo()
         {
@@ -110,6 +113,17 @@ namespace LudumDare25
             dudes.Add(Content.Load<Texture2D>("Dude/Dude4"));
             dudes.Add(Content.Load<Texture2D>("Dude/Dude5"));
             crowd = new Crowd(50, dudes, player);
+
+            //audio
+            thunder = new List<SoundEffect>();
+            thunder.Add(Content.Load<SoundEffect>("Sound/Thunder1"));
+            thunder.Add(Content.Load<SoundEffect>("Sound/Thunder2"));
+            thunder.Add(Content.Load<SoundEffect>("Sound/Thunder3"));
+            rain = Content.Load<SoundEffect>("Sound/Rain").CreateInstance();
+            rain.IsLooped = true;
+            wind = Content.Load<SoundEffect>("Sound/Wind").CreateInstance();
+            wind.IsLooped = true;
+            wind.Volume = 0.7f;
         }
 
         /// <summary>
@@ -130,10 +144,12 @@ namespace LudumDare25
                 if (player.isRaining)
                 {
                     player.isRaining = false;
+                    rain.Stop();
                 }
                 else
                 {
                     player.isRaining = true;
+                    rain.Play();
                 }
             }
             if (oldState.IsKeyUp(Keys.S) && newState.IsKeyDown(Keys.S))
@@ -152,10 +168,12 @@ namespace LudumDare25
                 if (player.isWind)
                 {
                     player.isWind = false;
+                    wind.Stop();
                 }
                 else
                 {
                     player.isWind = true;
+                    wind.Play();
                 }
             }
 
@@ -193,7 +211,7 @@ namespace LudumDare25
 
             if (player.isLightening && dudeHit == -1) //try to attack a dude if one isn't hit
             {
-                dudeHit = crowd.Lightening();
+                dudeHit = crowd.Lightening(thunder);
                 if (dudeHit != -1)
                 {
                     lightening = 1;
@@ -249,8 +267,8 @@ namespace LudumDare25
             spriteBatch.DrawString(font, fps, new Vector2(10, 10), Color.Black);
 
             //happy bar
-            string happyLabel = "Happiness: ";
-            spriteBatch.DrawString(font, happyLabel, new Vector2(550, 10), Color.Black);
+            string happyLabel = "Happiness: " + (int)crowd.happy + "%";
+            spriteBatch.DrawString(font, happyLabel, new Vector2(510, 10), Color.Black);
             if (crowd.happy > 0)
             {
                 spriteBatch.Draw(bars[(int)(crowd.happy - 0.1) / 10], new Vector2(650, 10), Color.White);
