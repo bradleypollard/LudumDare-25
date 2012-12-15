@@ -22,11 +22,13 @@ namespace LudumDare25
         private int direction = 10;
         private SpriteFont font;
         Texture2D rainCloud;
+        Texture2D dude;
 
         public Ludo()
         {
             graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
+            this.Window.Title = "The British Weather";
         }
 
         /// <summary>
@@ -56,6 +58,7 @@ namespace LudumDare25
             particleEngine = new ParticleEngine(textures, new Vector2(400, 150));
             font = Content.Load<SpriteFont>("Font1");
             rainCloud = Content.Load<Texture2D>("RainCloud");
+            dude = Content.Load<Texture2D>("Dude");
             // TODO: use this.Content to load your game content here
         }
 
@@ -110,6 +113,7 @@ namespace LudumDare25
             string fps = "FPS: " + frameRate;
             spriteBatch.DrawString(font, fps, new Vector2(10, 10), Color.Black);
             spriteBatch.Draw(rainCloud, new Vector2(170, 0), Color.White);
+            spriteBatch.Draw(dude, new Vector2(300, 450), Color.White);
             spriteBatch.End();
 
             base.Draw(gameTime);
