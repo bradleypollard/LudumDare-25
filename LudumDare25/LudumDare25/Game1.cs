@@ -18,6 +18,9 @@ namespace LudumDare25
     {
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
+        ParticleEngine particleEngine;
+        private int direction = 10;
+        private SpriteFont font;
 
         public Ludo()
         {
@@ -47,6 +50,10 @@ namespace LudumDare25
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
+            List<Texture2D> textures = new List<Texture2D>();
+            textures.Add(Content.Load<Texture2D>("circle"));
+            particleEngine = new ParticleEngine(textures, new Vector2(400, 240));
+            font = Content.Load<SpriteFont>("Font1");
             // TODO: use this.Content to load your game content here
         }
 
@@ -70,6 +77,17 @@ namespace LudumDare25
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed)
                 this.Exit();
 
+            if (particleEngine.EmitterLocation.X > 500)
+            {
+                direction = -10;
+            }
+            else if (particleEngine.EmitterLocation.X < 200)
+            {
+                direction = 10;
+            }
+
+            particleEngine.EmitterLocation = new Vector2(particleEngine.EmitterLocation.X + direction, particleEngine.EmitterLocation.Y);
+            particleEngine.Update();
             // TODO: Add your update logic here
 
             base.Update(gameTime);
@@ -81,9 +99,16 @@ namespace LudumDare25
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.CornflowerBlue);
+            GraphicsDevice.Clear(Color.DeepSkyBlue);
 
+            particleEngine.Draw(spriteBatch);
             // TODO: Add your drawing code here
+            spriteBatch.Begin();
+            float frameRate = 1 / (float)gameTime.ElapsedGameTime.TotalSeconds;
+            string fps = "FPS: " + frameRate;
+            spriteBatch.DrawString(font, fps, new Vector2(10, 10), Color.Black);
+
+            spriteBatch.End();
 
             base.Draw(gameTime);
         }
