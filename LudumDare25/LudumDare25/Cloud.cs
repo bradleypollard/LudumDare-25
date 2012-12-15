@@ -10,7 +10,7 @@ namespace LudumDare25
     class Cloud
     {
         public bool isRaining { get; set; }
-        public bool isThunder { get; set; }
+        public bool isWind { get; set; }
         public bool isLightening { get; set; }
         private Texture2D rain;
         private Texture2D sun;
@@ -19,7 +19,7 @@ namespace LudumDare25
         public Cloud(List<Texture2D> clouds)
         {
             isRaining = false;
-            isThunder = false;
+            isWind = false;
             isLightening = false;
 
             sun = clouds[0];
@@ -30,7 +30,7 @@ namespace LudumDare25
         public void Draw(SpriteBatch spriteBatch)
         {
             spriteBatch.Begin();
-            if (isLightening || isThunder)
+            if (isLightening)
             {
                 spriteBatch.Draw(storm, new Vector2(170, 0), Color.White);
             }

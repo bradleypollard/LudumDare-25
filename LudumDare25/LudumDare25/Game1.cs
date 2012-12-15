@@ -22,17 +22,24 @@ namespace LudumDare25
         Crowd crowd;
         private int direction = 10;
         private SpriteFont font;
-        private Texture2D rainCloud;
+        private Texture2D BG;
         private List<Texture2D> dudes;
         private List<Texture2D> bars;
         private List<Texture2D> clouds;
         Cloud player;
+        KeyboardState oldState;
+        private int lightening;
+        private float dudeHit;
+        private Texture2D light;
 
         public Ludo()
         {
             graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
             this.Window.Title = "The British Weather";
+            graphics.PreferredBackBufferWidth = 800;  // set this value to the desired width of your window
+            graphics.PreferredBackBufferHeight = 500;   // set this value to the desired height of your window
+            graphics.ApplyChanges();
         }
 
         /// <summary>
@@ -54,13 +61,16 @@ namespace LudumDare25
         {
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
-            
+            oldState = Keyboard.GetState();
 
             List<Texture2D> textures = new List<Texture2D>();
             textures.Add(Content.Load<Texture2D>("circle"));
             particleEngine = new ParticleEngine(textures, new Vector2(400, 150));
             font = Content.Load<SpriteFont>("Font1");
-            rainCloud = Content.Load<Texture2D>("RainCloud");
+            BG = Content.Load<Texture2D>("BG");
+            lightening = 0;
+            light = Content.Load<Texture2D>("Light1");
+            dudeHit = -1;
 
             //happy bar
             bars = new List<Texture2D>();
@@ -101,6 +111,36 @@ namespace LudumDare25
             // TODO: Unload any non ContentManager content here
         }
 
+        private void UpdateInput()
+        {
+            KeyboardState newState = Keyboard.GetState();
+
+            if (oldState.IsKeyUp(Keys.R) && newState.IsKeyDown(Keys.R))
+            {
+                if (player.isRaining)
+                {
+                    player.isRaining = false;
+                }
+                else
+                {
+                    player.isRaining = true;
+                }
+            }
+            if (oldState.IsKeyUp(Keys.S) && newState.IsKeyDown(Keys.S))
+            {
+                if (player.isLightening)
+                {
+                    player.isLightening = false;
+                }
+                else
+                {
+                    player.isLightening = true;
+                }
+            }
+
+            oldState = newState;
+        }
+
         /// <summary>
         /// Allows the game to run logic such as updating the world,
         /// checking for collisions, gathering input, and playing audio.
@@ -111,6 +151,8 @@ namespace LudumDare25
             // Allows the game to exit
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed)
                 this.Exit();
+
+            UpdateInput();
 
             if (player.isRaining)
             {
@@ -126,6 +168,15 @@ namespace LudumDare25
                 particleEngine.Update();
             }
 
+            if (player.isLightening && dudeHit == -1)
+            {
+                dudeHit = crowd.Lightening();
+                if (dudeHit != -1)
+                {
+                    lightening = 1;
+                }
+            }
+
             crowd.Update();
 
             base.Update(gameTime);
@@ -138,6 +189,10 @@ namespace LudumDare25
         protected override void Draw(GameTime gameTime)
         {
             GraphicsDevice.Clear(Color.DeepSkyBlue);
+            
+            spriteBatch.Begin();
+            spriteBatch.Draw(BG, new Vector2(0,0), Color.White);
+            spriteBatch.End();
 
             if (player.isRaining)
             {
@@ -147,14 +202,35 @@ namespace LudumDare25
             player.Draw(spriteBatch);
 
             spriteBatch.Begin();
-            float frameRate = 1 / (float)gameTime.ElapsedGameTime.TotalSeconds;
-            string fps = "FPS: " + crowd.happy;
-            spriteBatch.DrawString(font, fps, new Vector2(10, 10), Color.Black);
-            
 
+            //fps
+            float frameRate = 1 / (float)gameTime.ElapsedGameTime.TotalSeconds;
+            string fps = "FPS: " + frameRate;
+            spriteBatch.DrawString(font, fps, new Vector2(10, 10), Color.Black);
+
+            //happy bar
             string happyLabel = "Happiness: ";
             spriteBatch.DrawString(font, happyLabel, new Vector2(550, 10), Color.Black);
             spriteBatch.Draw(bars[(int)(crowd.happy - 0.1) / 10], new Vector2(650, 10), Color.White);
+
+            //people remaining
+            string peopleLabel = "People left: " + crowd.count;
+            spriteBatch.DrawString(font, peopleLabel, new Vector2(550, 30), Color.Black);
+
+            if (lightening > 6) //draw lightening strikes
+            {
+                lightening = 0;
+                dudeHit = -1;
+            }
+            else if (lightening > 0)
+            {
+                for (int i = 0; i < lightening; i++)
+                {
+                    spriteBatch.Draw(light, new Vector2(dudeHit, 200 + 32 * i), Color.White);
+                }
+                lightening += 1;
+            }
+            
 
             spriteBatch.End();
 

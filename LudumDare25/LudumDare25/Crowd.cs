@@ -14,10 +14,12 @@ namespace LudumDare25
         private Random random;
         private List<Texture2D> Dudes;
         private List<Dude> randDudes;
+        public int count { get; set; }
 
         public Crowd(int number, List<Texture2D> dudes, Cloud player)
         {
             Number = number;
+            count = number;
             Dudes = dudes;
             random = new Random();
             happy = 100;
@@ -29,12 +31,31 @@ namespace LudumDare25
             }
         }
 
+        public float Lightening()
+        {
+            if (random.Next(120) == 60 && count != 0)
+            {
+                float pos = 0;
+                int hit = 0;
+                do
+                {
+                    hit = random.Next(randDudes.Count);
+                    pos = randDudes[hit].Position.X;
+                } while (pos < 170 || !randDudes[hit].inCrowd);
+                randDudes[hit].happy = 0;
+                randDudes[hit].inCrowd = false;
+                count -= 1;
+                return randDudes[hit].Position.X;
+            }
+            return -1;
+        }
+
         public void Update()
         {
             happy = 0;
             for (int i = 0; i < randDudes.Count; i++)
             {
-                randDudes[i].Update();
+                count += randDudes[i].Update();
                 happy += randDudes[i].happy;
             }
             happy /= randDudes.Count;
