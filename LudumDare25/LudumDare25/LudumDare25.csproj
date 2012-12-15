@@ -111,6 +111,7 @@
     <Compile Include="Cloud.cs" />
     <Compile Include="Crowd.cs" />
     <Compile Include="Dude.cs" />
+    <Compile Include="LeafEngine.cs" />
     <Compile Include="Particle.cs" />
     <Compile Include="ParticleEngine.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

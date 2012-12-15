@@ -18,6 +18,7 @@ namespace LudumDare25
         private int posInc;
         private Cloud Player;
         public bool inCrowd { get; set; }
+        private float rotation;
         
         public Dude(Texture2D texture, Random PassRandom, Cloud player)
         {
@@ -30,14 +31,31 @@ namespace LudumDare25
             posInc = 200;
             Player = player;
             inCrowd = true;
+            rotation = 0;
+        }
+
+        public void blowOver()
+        {
+            rotation = (float)Math.PI * (3.0f/2.0f);
+            Position = new Vector2(Position.X, Position.Y + 16);
+            happy -= 30;
+            if (happy < 0)
+            {
+                happy = 0;
+            }
         }
 
         public int Update()
         {
             if (frames == 15)
             {
+                if (rotation != 0 && random.Next(4) == 1)
+                {
+                    rotation = 0;
+                    Position = new Vector2(Position.X, Position.Y - 16); 
+                }
                 frames = 0;
-                if (happy > 0 && (Player.isRaining || Player.isWind || Player.isLightening))
+                if (happy > 0 && (Player.isRaining || Player.isWind || Player.isLightening) && inCrowd)
                 {
                     if (Player.isRaining)
                     {
@@ -51,8 +69,12 @@ namespace LudumDare25
                     {
                         happy -= (disp * 0);
                     }
+                    if (happy < 0)
+                    {
+                        happy = 0;
+                    }
                 }
-                else if (happy < 100 && !Player.isRaining && !Player.isWind && !Player.isLightening)
+                else if (happy < 100 && !Player.isRaining && !Player.isWind && !Player.isLightening && inCrowd)
                 {
                     happy += 1;
                     if (happy > 100)
@@ -64,12 +86,12 @@ namespace LudumDare25
             else
             {
                 frames += 1;
-                if (happy > 0 && posInc > 0 && Position.X > -4 && inCrowd) //move dude right till in position
+                if (happy > 0 && posInc > 0 && Position.X > -4 && inCrowd && rotation == 0) //move dude right till in position
                 {
                     Position = new Vector2(Position.X + random.Next(2) + 1, Position.Y + (int)random.NextDouble());
                     posInc -= 1;
                 }
-                else if ((happy < 1 || !inCrowd) && Position.X > -4) //if unhappy move off screen
+                else if ((happy < 1 || !inCrowd) && Position.X > -4 && rotation == 0) //if unhappy move off screen
                 {
                     Position = new Vector2(Position.X - 1, Position.Y);
                     posInc += random.Next(2);
@@ -77,6 +99,7 @@ namespace LudumDare25
                 else if (happy < 1 && Position.X <= -4 && inCrowd)
                 {
                     inCrowd = false;
+                    happy = 0;
                     return -1;
                 }
             }
@@ -89,7 +112,7 @@ namespace LudumDare25
             Vector2 origin = new Vector2(Texture.Width / 2, Texture.Height / 2);
 
             spriteBatch.Draw(Texture, Position, sourceRectangle, Color.White,
-                0, origin, 1, SpriteEffects.None, 0f);
+                rotation, origin, 1, SpriteEffects.None, 0f);
         }
 
     }

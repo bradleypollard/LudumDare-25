@@ -20,7 +20,8 @@ namespace LudumDare25
         SpriteBatch spriteBatch;
         ParticleEngine particleEngine;
         Crowd crowd;
-        private int direction = 10;
+        private int directionX = -10;
+        private int directionY = 10;
         private SpriteFont font;
         private Texture2D BG;
         private List<Texture2D> dudes;
@@ -31,6 +32,8 @@ namespace LudumDare25
         private int lightening;
         private float dudeHit;
         private Texture2D light;
+        LeafEngine leafEngine;
+        private Texture2D bar0;
 
         public Ludo()
         {
@@ -63,14 +66,28 @@ namespace LudumDare25
             spriteBatch = new SpriteBatch(GraphicsDevice);
             oldState = Keyboard.GetState();
 
+            //cloud textures
+            clouds = new List<Texture2D>();
+            clouds.Add(Content.Load<Texture2D>("SunCloud"));
+            clouds.Add(Content.Load<Texture2D>("RainCloud"));
+            clouds.Add(Content.Load<Texture2D>("StormCloud"));
+            player = new Cloud(clouds);
+
+            //engines
             List<Texture2D> textures = new List<Texture2D>();
             textures.Add(Content.Load<Texture2D>("circle"));
             particleEngine = new ParticleEngine(textures, new Vector2(400, 150));
+            textures = new List<Texture2D>();
+            textures.Add(Content.Load<Texture2D>("leaf"));
+            leafEngine = new LeafEngine(textures, new Vector2(860, 200));
+
+            //text and other var
             font = Content.Load<SpriteFont>("Font1");
             BG = Content.Load<Texture2D>("BG");
             lightening = 0;
             light = Content.Load<Texture2D>("Light1");
             dudeHit = -1;
+            bar0 = Content.Load<Texture2D>("Bar/Bar00");
 
             //happy bar
             bars = new List<Texture2D>();
@@ -84,13 +101,6 @@ namespace LudumDare25
             bars.Add(Content.Load<Texture2D>("Bar/Bar80"));
             bars.Add(Content.Load<Texture2D>("Bar/Bar90"));
             bars.Add(Content.Load<Texture2D>("Bar/Bar100"));
-
-            //cloud textures
-            clouds = new List<Texture2D>();
-            clouds.Add(Content.Load<Texture2D>("SunCloud"));
-            clouds.Add(Content.Load<Texture2D>("RainCloud"));
-            clouds.Add(Content.Load<Texture2D>("StormCloud"));
-            player = new Cloud(clouds);
 
             //construct crowd
             dudes = new List<Texture2D>();
@@ -137,6 +147,17 @@ namespace LudumDare25
                     player.isLightening = true;
                 }
             }
+            if (oldState.IsKeyUp(Keys.W) && newState.IsKeyDown(Keys.W))
+            {
+                if (player.isWind)
+                {
+                    player.isWind = false;
+                }
+                else
+                {
+                    player.isWind = true;
+                }
+            }
 
             oldState = newState;
         }
@@ -154,21 +175,23 @@ namespace LudumDare25
 
             UpdateInput();
 
-            if (player.isRaining)
+            if (player.isRaining) //calc emmiter pos
             {
                 if (particleEngine.EmitterLocation.X > 500)
                 {
-                    direction = -10;
+                    directionX = -10;
                 }
                 else if (particleEngine.EmitterLocation.X < 200)
                 {
-                    direction = 10;
+                    directionX = 10;
                 }
-                particleEngine.EmitterLocation = new Vector2(particleEngine.EmitterLocation.X + direction, particleEngine.EmitterLocation.Y);
-                particleEngine.Update();
+                particleEngine.EmitterLocation = new Vector2(particleEngine.EmitterLocation.X + directionX, particleEngine.EmitterLocation.Y);
+                
             }
 
-            if (player.isLightening && dudeHit == -1)
+            particleEngine.Update(player.isWind, player.isRaining); //update rain
+
+            if (player.isLightening && dudeHit == -1) //try to attack a dude if one isn't hit
             {
                 dudeHit = crowd.Lightening();
                 if (dudeHit != -1)
@@ -177,7 +200,24 @@ namespace LudumDare25
                 }
             }
 
-            crowd.Update();
+            if (player.isWind) // update wind pos
+            {
+                if (leafEngine.EmitterLocation.Y > 250)
+                {
+                    directionY = -10;
+                }
+                else if (leafEngine.EmitterLocation.Y < 150)
+                {
+                    directionY = 10;
+                }
+                leafEngine.EmitterLocation = new Vector2(leafEngine.EmitterLocation.X, leafEngine.EmitterLocation.Y + directionY);
+                
+                crowd.Wind();
+            }
+
+            leafEngine.Update(player.isWind); //update wind
+
+            crowd.Update(); //update crowd
 
             base.Update(gameTime);
         }
@@ -190,14 +230,14 @@ namespace LudumDare25
         {
             GraphicsDevice.Clear(Color.DeepSkyBlue);
             
+            //render bg
             spriteBatch.Begin();
             spriteBatch.Draw(BG, new Vector2(0,0), Color.White);
             spriteBatch.End();
 
-            if (player.isRaining)
-            {
-                particleEngine.Draw(spriteBatch);
-            }
+            //render classes
+            particleEngine.Draw(spriteBatch);
+            leafEngine.Draw(spriteBatch);
             crowd.Draw(spriteBatch);
             player.Draw(spriteBatch);
 
@@ -211,7 +251,14 @@ namespace LudumDare25
             //happy bar
             string happyLabel = "Happiness: ";
             spriteBatch.DrawString(font, happyLabel, new Vector2(550, 10), Color.Black);
-            spriteBatch.Draw(bars[(int)(crowd.happy - 0.1) / 10], new Vector2(650, 10), Color.White);
+            if (crowd.happy > 0)
+            {
+                spriteBatch.Draw(bars[(int)(crowd.happy - 0.1) / 10], new Vector2(650, 10), Color.White);
+            }
+            else
+            {
+                spriteBatch.Draw(bar0, new Vector2(650, 10), Color.White);
+            }
 
             //people remaining
             string peopleLabel = "People left: " + crowd.count;

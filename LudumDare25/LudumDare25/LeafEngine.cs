@@ -7,14 +7,14 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace LudumDare25
 {
-    public class ParticleEngine
+    public class LeafEngine
     {
         private Random random;
         public Vector2 EmitterLocation { get; set; }
         private List<Particle> particles;
         private List<Texture2D> textures;
 
-        public ParticleEngine(List<Texture2D> textures, Vector2 location)
+        public LeafEngine(List<Texture2D> textures, Vector2 location)
         {
             EmitterLocation = location;
             this.textures = textures;
@@ -22,18 +22,17 @@ namespace LudumDare25
             random = new Random();
         }
 
-        public void Update(bool isWind, bool isRain)
+        public void Update(bool isWind)
         {
-            if (isRain)
+            if (isWind)
             {
-                int total = 5;
+                int total = 1;
 
                 for (int i = 0; i < total; i++)
                 {
-                    particles.Add(GenerateNewParticle(isWind));
+                    particles.Add(GenerateNewParticle());
                 }
             }
-            
 
             for (int particle = 0; particle < particles.Count; particle++)
             {
@@ -46,25 +45,17 @@ namespace LudumDare25
             }
         }
 
-        private Particle GenerateNewParticle(bool isWind)
+        private Particle GenerateNewParticle()
         {
             Texture2D texture = textures[random.Next(textures.Count)];
             Vector2 position = EmitterLocation;
-            Vector2 velocity = (1f * (float)(random.NextDouble() * 2)) * new Vector2((float)(random.NextDouble()) * 0.1f,
-                                                                                    1f * (float)(random.NextDouble() * 4 + 1));
-            if (isWind)
-            {
-                velocity = new Vector2(velocity.X - 1, velocity.Y);
-            }
-
+            Vector2 velocity = (1f * (float)(random.NextDouble() * 2)) * new Vector2((float)(random.NextDouble()) * -2 - 2,
+                                                                                    1f * (float)(random.NextDouble() * 2f));
             float angle = 0;
-            float angularVelocity = 0.0f;
-            Color color = new Color(
-                        0,
-                        0,
-                        (float)random.NextDouble());
-            float size = 0.5f * (float)random.NextDouble();
-            int ttl = 50 + random.Next(60);
+            float angularVelocity = 0.1f;
+            Color color = new Color(((float)random.NextDouble()), ((float)random.NextDouble()), 0);
+            float size = 1.0f;
+            int ttl = 160;
 
             return new Particle(texture, position, velocity, angle, angularVelocity, color, size, ttl);
         }
@@ -80,3 +71,4 @@ namespace LudumDare25
         }
     }
 }
+

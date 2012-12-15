@@ -33,7 +33,7 @@ namespace LudumDare25
 
         public float Lightening()
         {
-            if (random.Next(120) == 60 && count != 0)
+            if (random.Next(120) == 60 && count > 5)
             {
                 float pos = 0;
                 int hit = 0;
@@ -48,6 +48,21 @@ namespace LudumDare25
                 return randDudes[hit].Position.X;
             }
             return -1;
+        }
+
+        public void Wind()
+        {
+            if (random.Next(30) == 15 && count != 0)
+            {
+                float pos = 0;
+                int hit = 0;
+                do
+                {
+                    hit = random.Next(randDudes.Count);
+                    pos = randDudes[hit].Position.X;
+                } while (!randDudes[hit].inCrowd);
+                randDudes[hit].blowOver();
+            }
         }
 
         public void Update()
