@@ -19,10 +19,14 @@ namespace LudumDare25
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
         ParticleEngine particleEngine;
+        Crowd crowd;
         private int direction = 10;
         private SpriteFont font;
-        Texture2D rainCloud;
-        Texture2D dude;
+        private Texture2D rainCloud;
+        private List<Texture2D> dudes;
+        private List<Texture2D> bars;
+        private List<Texture2D> clouds;
+        Cloud player;
 
         public Ludo()
         {
@@ -39,9 +43,7 @@ namespace LudumDare25
         /// </summary>
         protected override void Initialize()
         {
-            // TODO: Add your initialization logic here
-
-            base.Initialize();
+           base.Initialize();
         }
 
         /// <summary>
@@ -52,14 +54,42 @@ namespace LudumDare25
         {
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
+            
 
             List<Texture2D> textures = new List<Texture2D>();
             textures.Add(Content.Load<Texture2D>("circle"));
             particleEngine = new ParticleEngine(textures, new Vector2(400, 150));
             font = Content.Load<SpriteFont>("Font1");
             rainCloud = Content.Load<Texture2D>("RainCloud");
-            dude = Content.Load<Texture2D>("Dude");
-            // TODO: use this.Content to load your game content here
+
+            //happy bar
+            bars = new List<Texture2D>();
+            bars.Add(Content.Load<Texture2D>("Bar/Bar10"));
+            bars.Add(Content.Load<Texture2D>("Bar/Bar20"));
+            bars.Add(Content.Load<Texture2D>("Bar/Bar30"));
+            bars.Add(Content.Load<Texture2D>("Bar/Bar40"));
+            bars.Add(Content.Load<Texture2D>("Bar/Bar50"));
+            bars.Add(Content.Load<Texture2D>("Bar/Bar60"));
+            bars.Add(Content.Load<Texture2D>("Bar/Bar70"));
+            bars.Add(Content.Load<Texture2D>("Bar/Bar80"));
+            bars.Add(Content.Load<Texture2D>("Bar/Bar90"));
+            bars.Add(Content.Load<Texture2D>("Bar/Bar100"));
+
+            //cloud textures
+            clouds = new List<Texture2D>();
+            clouds.Add(Content.Load<Texture2D>("SunCloud"));
+            clouds.Add(Content.Load<Texture2D>("RainCloud"));
+            clouds.Add(Content.Load<Texture2D>("StormCloud"));
+            player = new Cloud(clouds);
+
+            //construct crowd
+            dudes = new List<Texture2D>();
+            dudes.Add(Content.Load<Texture2D>("Dude/Dude1"));
+            dudes.Add(Content.Load<Texture2D>("Dude/Dude2"));
+            dudes.Add(Content.Load<Texture2D>("Dude/Dude3"));
+            dudes.Add(Content.Load<Texture2D>("Dude/Dude4"));
+            dudes.Add(Content.Load<Texture2D>("Dude/Dude5"));
+            crowd = new Crowd(50, dudes, player);
         }
 
         /// <summary>
@@ -82,18 +112,21 @@ namespace LudumDare25
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed)
                 this.Exit();
 
-            if (particleEngine.EmitterLocation.X > 500)
+            if (player.isRaining)
             {
-                direction = -10;
-            }
-            else if (particleEngine.EmitterLocation.X < 200)
-            {
-                direction = 10;
+                if (particleEngine.EmitterLocation.X > 500)
+                {
+                    direction = -10;
+                }
+                else if (particleEngine.EmitterLocation.X < 200)
+                {
+                    direction = 10;
+                }
+                particleEngine.EmitterLocation = new Vector2(particleEngine.EmitterLocation.X + direction, particleEngine.EmitterLocation.Y);
+                particleEngine.Update();
             }
 
-            particleEngine.EmitterLocation = new Vector2(particleEngine.EmitterLocation.X + direction, particleEngine.EmitterLocation.Y);
-            particleEngine.Update();
-            // TODO: Add your update logic here
+            crowd.Update();
 
             base.Update(gameTime);
         }
@@ -106,14 +139,23 @@ namespace LudumDare25
         {
             GraphicsDevice.Clear(Color.DeepSkyBlue);
 
-            particleEngine.Draw(spriteBatch);
-            // TODO: Add your drawing code here
+            if (player.isRaining)
+            {
+                particleEngine.Draw(spriteBatch);
+            }
+            crowd.Draw(spriteBatch);
+            player.Draw(spriteBatch);
+
             spriteBatch.Begin();
             float frameRate = 1 / (float)gameTime.ElapsedGameTime.TotalSeconds;
-            string fps = "FPS: " + frameRate;
+            string fps = "FPS: " + crowd.happy;
             spriteBatch.DrawString(font, fps, new Vector2(10, 10), Color.Black);
-            spriteBatch.Draw(rainCloud, new Vector2(170, 0), Color.White);
-            spriteBatch.Draw(dude, new Vector2(300, 450), Color.White);
+            
+
+            string happyLabel = "Happiness: ";
+            spriteBatch.DrawString(font, happyLabel, new Vector2(550, 10), Color.Black);
+            spriteBatch.Draw(bars[(int)(crowd.happy - 0.1) / 10], new Vector2(650, 10), Color.White);
+
             spriteBatch.End();
 
             base.Draw(gameTime);

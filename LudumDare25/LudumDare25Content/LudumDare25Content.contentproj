@@ -61,12 +61,99 @@
       <Name>RainCloud</Name>
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
-      <ProcessorParameters_ColorKeyColor>255, 255, 255, 255</ProcessorParameters_ColorKeyColor>
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Dude.png">
-      <Name>Dude</Name>
+    <Compile Include="Dude\Dude1.png">
+      <Name>Dude1</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Dude\Dude2.png">
+      <Name>Dude2</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Dude\Dude3.png">
+      <Name>Dude3</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="Dude\Dude4.png">
+      <Name>Dude4</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="Dude\Dude5.png">
+      <Name>Dude5</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Bar\Bar10.png">
+      <Name>Bar10</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="Bar\Bar100.png">
+      <Name>Bar100</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="Bar\Bar20.png">
+      <Name>Bar20</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="Bar\Bar30.png">
+      <Name>Bar30</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="Bar\Bar40.png">
+      <Name>Bar40</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="Bar\Bar50.png">
+      <Name>Bar50</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="Bar\Bar60.png">
+      <Name>Bar60</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="Bar\Bar70.png">
+      <Name>Bar70</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="Bar\Bar80.png">
+      <Name>Bar80</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="Bar\Bar90.png">
+      <Name>Bar90</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="StormCloud.png">
+      <Name>StormCloud</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="SunCloud.png">
+      <Name>SunCloud</Name>
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
     </Compile>
