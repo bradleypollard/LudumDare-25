@@ -21,6 +21,7 @@ namespace LudumDare25
         ParticleEngine particleEngine;
         private int direction = 10;
         private SpriteFont font;
+        Texture2D rainCloud;
 
         public Ludo()
         {
@@ -52,8 +53,9 @@ namespace LudumDare25
 
             List<Texture2D> textures = new List<Texture2D>();
             textures.Add(Content.Load<Texture2D>("circle"));
-            particleEngine = new ParticleEngine(textures, new Vector2(400, 240));
+            particleEngine = new ParticleEngine(textures, new Vector2(400, 150));
             font = Content.Load<SpriteFont>("Font1");
+            rainCloud = Content.Load<Texture2D>("RainCloud");
             // TODO: use this.Content to load your game content here
         }
 
@@ -107,7 +109,7 @@ namespace LudumDare25
             float frameRate = 1 / (float)gameTime.ElapsedGameTime.TotalSeconds;
             string fps = "FPS: " + frameRate;
             spriteBatch.DrawString(font, fps, new Vector2(10, 10), Color.Black);
-
+            spriteBatch.Draw(rainCloud, new Vector2(170, 0), Color.White);
             spriteBatch.End();
 
             base.Draw(gameTime);
