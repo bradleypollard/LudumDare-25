@@ -67,7 +67,7 @@ namespace LudumDare25
             }
         }
 
-        public void Update()
+        public int[] Update(Cloud player)
         {
             happy = 0;
             for (int i = 0; i < randDudes.Count; i++)
@@ -76,14 +76,62 @@ namespace LudumDare25
                 happy += randDudes[i].happy;
             }
             happy /= randDudes.Count;
+
+            int[] array = new int[2];
+            if (random.Next(240) == 120) //speech
+            {
+                Dude temp = randDudes[random.Next(randDudes.Count)];
+                array[1] = (int)temp.Position.X;
+                if (!temp.inCrowd)
+                {
+                    array[0] = -1;
+                    return array;
+                }
+                if (temp.happy > 50)
+                {
+                    array[0] = 0;
+                    return array;
+                }
+                else if (temp.dispWind == 0 && player.isLightening)
+                {
+                    array[0] = 3;
+                    return array;
+                }
+                else if (temp.dispLight == 0 && player.isWind)
+                {
+                    array[0] = 4;
+                    return array;
+                }
+                else if (player.isRaining)
+                {
+                    array[0] = 2;
+                    return array;
+                }
+                else if (temp.happy < 50)
+                {
+                    array[0] = 1;
+                    return array;
+                }
+                else
+                {
+                    array[0] = -1;
+                    return array;
+                }
+            }
+            else
+            {
+                array[0] = -1;
+                array[1] = 0;
+                return array;
+            }
         }
 
-        public void Draw(SpriteBatch spriteBatch)
+        public void Draw(SpriteBatch spriteBatch, Color sky)
         {
             spriteBatch.Begin();
             for (int i = 0; i < randDudes.Count; i++)
             {
-                randDudes[i].Draw(spriteBatch);
+                randDudes[i].Draw(spriteBatch, sky);
             }
             spriteBatch.End();
         }

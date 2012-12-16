@@ -51,6 +51,12 @@ namespace LudumDare25
         LeafEngine endEngine;
         Song song;
         TimeSpan songLength;
+        private Color sky;
+        private SpriteFont font2;
+        private List<Texture2D> speech;
+        private int[] speechIndex = new int[2];
+        private bool speechDrawn;
+        private double speechCounter;
 
         public Ludo()
         {
@@ -102,6 +108,7 @@ namespace LudumDare25
 
             //text and other var
             font = Content.Load<SpriteFont>("Font1");
+            font2 = Content.Load<SpriteFont>("Font2");
             BG = Content.Load<Texture2D>("BG");
             lightening = 0;
             light = Content.Load<Texture2D>("Light1");
@@ -119,6 +126,7 @@ namespace LudumDare25
             gameOver = false;
             End = Content.Load<Texture2D>("GameOver1");
             EndBG = Content.Load<Texture2D>("GameOverBG");
+            sky = Color.White;
 
             //happy bar
             bars = new List<Texture2D>();
@@ -155,6 +163,19 @@ namespace LudumDare25
             wind.Volume = 0.7f;
             song = Content.Load<Song>("Parity_Bit");
             songLength = song.Duration;
+
+            //speech
+            speechIndex[0] = -1;
+            speechIndex[1] = 0;
+            speech = new List<Texture2D>();
+            speech.Add(Content.Load<Texture2D>("Speech/SpeechHappy"));
+            speech.Add(Content.Load<Texture2D>("Speech/SpeechSad"));
+            speech.Add(Content.Load<Texture2D>("Speech/SpeechRain"));
+            speech.Add(Content.Load<Texture2D>("Speech/SpeechLight"));
+            speech.Add(Content.Load<Texture2D>("Speech/SpeechWind"));
+            speechDrawn = false;
+            speechCounter = 0;
+
         }
 
         /// <summary>
@@ -194,11 +215,19 @@ namespace LudumDare25
                     {
                         player.isRaining = false;
                         rain.Stop();
+                        if (!player.isLightening)
+                        {
+                            sky = Color.White;
+                        }
                     }
                     else
                     {
                         player.isRaining = true;
                         rain.Play();
+                        if (!player.isLightening)
+                        {
+                            sky = Color.LightGray;
+                        }
                     }
                 }
                 if (oldState.IsKeyUp(Keys.S) && newState.IsKeyDown(Keys.S))
@@ -206,10 +235,15 @@ namespace LudumDare25
                     if (player.isLightening)
                     {
                         player.isLightening = false;
+                        if (!player.isRaining)
+                        {
+                            sky = Color.White;
+                        }
                     }
                     else
                     {
                         player.isLightening = true;
+                        sky = Color.Gray;
                     }
                 }
                 if (oldState.IsKeyUp(Keys.W) && newState.IsKeyDown(Keys.W))
@@ -226,6 +260,8 @@ namespace LudumDare25
                     }
                 }
             }
+            if (Keyboard.GetState().IsKeyDown(Keys.Escape))
+                this.Exit();
 
             oldState = newState;
         }
@@ -296,7 +332,7 @@ namespace LudumDare25
                         directionX = 10;
                     }
                     particleEngine.EmitterLocation = new Vector2(particleEngine.EmitterLocation.X + directionX, particleEngine.EmitterLocation.Y);
-
+                    sky = Color.LightGray;
                 }
 
                 particleEngine.Update(player.isWind, player.isRaining); //update rain
@@ -308,6 +344,7 @@ namespace LudumDare25
                     {
                         lightening = 1;
                     }
+                    sky = Color.Gray;
                 }
 
                 if (player.isWind) // update wind pos
@@ -327,7 +364,13 @@ namespace LudumDare25
 
                 leafEngine.Update(player.isWind); //update wind
 
-                crowd.Update(); //update crowd
+                int[] temp = speechIndex; //handle speech 
+                speechIndex = crowd.Update(player); //update crowd
+                if (speechDrawn)
+                {
+                    speechIndex = temp;
+                }
+
                 if (!gameOver)
                 {
                     if (timeCounter % 60 == 0) //update scorer
@@ -335,6 +378,11 @@ namespace LudumDare25
                         score += crowd.happy;
                     }
                     timeCounter += 1;
+                }
+
+                if (lightening > 0)
+                {
+                    sky = Color.White;
                 }
             }
 
@@ -357,7 +405,12 @@ namespace LudumDare25
             crowd = new Crowd(50, dudes, player);
             title = true;
             gameOver = false;
+            speechIndex[0] = -1;
+            speechIndex[1] = 0;
+            speechCounter = 0;
+            speechDrawn = false;
             rain.Play();
+            sky = Color.White;
         }
 
         /// <summary>
@@ -383,11 +436,50 @@ namespace LudumDare25
                 spriteBatch.Begin();
                 spriteBatch.Draw(EndBG, new Vector2(0, 0), Color.White); //draw bg
                 spriteBatch.End();
-                endEngine.Draw(spriteBatch); //draw leaves
+                endEngine.Draw(spriteBatch, Color.White); //draw leaves
                 spriteBatch.Begin();
                 double finalscore = 1000 * crowd.count * (1 / (score / (timeCounter / 60)));//calc score
-                string endLabel = "You scored: " + (int)finalscore;
-                spriteBatch.DrawString(font, endLabel, new Vector2(250, 250), Color.Black);
+                string endLabel = "Number of people left: " + (int)crowd.count;
+                spriteBatch.DrawString(font, endLabel, new Vector2(285, 250), Color.Black);
+                endLabel = "Average unhappiness: " + (int)(score / (timeCounter / 60));
+                spriteBatch.DrawString(font, endLabel, new Vector2(280, 270), Color.Black);
+                endLabel = "You scored: " + (int)finalscore;
+                spriteBatch.DrawString(font2, endLabel, new Vector2(265, 310), Color.Gold);
+                if (crowd.count == 0)
+                {
+                    endLabel = "You scared everyone away! You can't have any fun like that.";
+                    spriteBatch.DrawString(font, endLabel, new Vector2(120, 350), Color.Black);
+                }
+                else if (finalscore < 1000 && (score / (timeCounter / 60) > 40))
+                {
+                    endLabel = "Everyone was way too happy! Remember, rain makes everyone unhappy.";
+                    spriteBatch.DrawString(font, endLabel, new Vector2(90, 350), Color.Black);
+                }
+                else if (finalscore < 1000)
+                {
+                    endLabel = "Your score is almost as bad as the weather! Try to scare less people off.";
+                    spriteBatch.DrawString(font, endLabel, new Vector2(70, 350), Color.Black);
+                }
+                else if (finalscore < 1500)
+                {
+                    endLabel = "Not totally awful. Note that if wind knocks someone down, they get really unhappy!";
+                    spriteBatch.DrawString(font, endLabel, new Vector2(30, 350), Color.Black);
+                }
+                else if (finalscore < 2000)
+                {
+                    endLabel = "Better - try to keep as many people at the gig for a higher multiplier!";
+                    spriteBatch.DrawString(font, endLabel, new Vector2(90, 350), Color.Black);
+                }
+                else if (finalscore < 2500)
+                {
+                    endLabel = "You nearly ruined everyone's day - awesome! Lightning can remove someone instantly.";
+                    spriteBatch.DrawString(font, endLabel, new Vector2(30, 350), Color.Black);
+                }
+                else
+                {
+                    endLabel = "Now that's what I call British weather! Everyone had a terrible time.";
+                    spriteBatch.DrawString(font, endLabel, new Vector2(110, 350), Color.Black);
+                }
                 spriteBatch.Draw(End, new Vector2(0, 0), Color.White); //draw overlay
                 spriteBatch.End();
             }
@@ -395,13 +487,13 @@ namespace LudumDare25
             {
                 //render bg
                 spriteBatch.Begin();
-                spriteBatch.Draw(BG, new Vector2(0, 0), Color.White);
+                spriteBatch.Draw(BG, new Vector2(0, 0), sky);
                 spriteBatch.End();
 
                 //render classes
                 particleEngine.Draw(spriteBatch);
-                leafEngine.Draw(spriteBatch);
-                crowd.Draw(spriteBatch);
+                leafEngine.Draw(spriteBatch, sky);
+                crowd.Draw(spriteBatch, sky);
                 player.Draw(spriteBatch);
 
                 spriteBatch.Begin();
@@ -441,6 +533,21 @@ namespace LudumDare25
                     lightening += 1;
                 }
 
+                //speech
+                if (speechIndex[0] != -1 || speechDrawn)
+                {
+                    if (!speechDrawn)
+                    {
+                        speechCounter = timeCounter;
+                    }
+                    spriteBatch.Draw(speech[speechIndex[0]], new Vector2(speechIndex[1], 350), Color.White);
+                    speechDrawn = true;
+                    if (timeCounter >= speechCounter + 60)
+                    {
+                        speechDrawn = false;
+                        speechCounter = 0;
+                    }
+                }
 
                 spriteBatch.End();
             }

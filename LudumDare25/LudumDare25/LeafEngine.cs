@@ -60,12 +60,12 @@ namespace LudumDare25
             return new Particle(texture, position, velocity, angle, angularVelocity, color, size, ttl);
         }
 
-        public void Draw(SpriteBatch spriteBatch)
+        public void Draw(SpriteBatch spriteBatch, Color sky)
         {
             spriteBatch.Begin();
             for (int index = 0; index < particles.Count; index++)
             {
-                particles[index].Draw(spriteBatch);
+                particles[index].Draw(spriteBatch, sky);
             }
             spriteBatch.End();
         }

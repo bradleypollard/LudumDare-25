@@ -46,5 +46,13 @@ namespace LudumDare25
             spriteBatch.Draw(Texture, Position, sourceRectangle, Color,
                 Angle, origin, Size, SpriteEffects.None, 0f);
         }
+        public void Draw(SpriteBatch spriteBatch, Color sky)
+        {
+            Rectangle sourceRectangle = new Rectangle(0, 0, Texture.Width, Texture.Height);
+            Vector2 origin = new Vector2(Texture.Width / 2, Texture.Height / 2);
+
+            spriteBatch.Draw(Texture, Position, sourceRectangle, new Color(Color.R - (256 - sky.R), Color.G - (256 - sky.G), 0),
+                Angle, origin, Size, SpriteEffects.None, 0f);
+        }
     }
 }

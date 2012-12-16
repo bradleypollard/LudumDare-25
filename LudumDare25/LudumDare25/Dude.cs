@@ -14,6 +14,8 @@ namespace LudumDare25
         private Random random;
         public double happy { get; set; }
         private double disp; //how fast happy decreases
+        public double dispLight { get; set; }
+        public double dispWind { get; set; }
         private int frames;
         private int posInc;
         private Cloud Player;
@@ -26,6 +28,17 @@ namespace LudumDare25
             Texture = texture;
             random = PassRandom;
             happy = 100;
+            int WindRain = random.Next(3);
+            if (WindRain == 0)
+            {
+                dispLight = (random.NextDouble() + 0.1f) * 2;
+                dispWind = 0;
+            }
+            else
+            {
+                dispLight = 0;
+                dispWind = (random.NextDouble() + 0.1f) * 2;
+            }
             disp = (random.NextDouble() + 0.1f) * 2;
             Position = new Vector2(10 + (float)(random.NextDouble() * 200.0f), 460 + (float)random.NextDouble() * 8);
             frames = 0;
@@ -87,11 +100,11 @@ namespace LudumDare25
                     }
                     if (Player.isWind)
                     {
-                        happy -= (disp * 3);
+                        happy -= (dispWind * 3);
                     }
                     if (Player.isLightening)
                     {
-                        happy -= (disp * 0);
+                        happy -= (dispLight * 4);
                     }
                     if (happy < 0)
                     {
@@ -131,12 +144,12 @@ namespace LudumDare25
             return 0;
         }
 
-        public void Draw(SpriteBatch spriteBatch)
+        public void Draw(SpriteBatch spriteBatch, Color sky)
         {
             Rectangle sourceRectangle = new Rectangle(0, 0, Texture.Width, Texture.Height);
             Vector2 origin = new Vector2(Texture.Width / 2, Texture.Height / 2);
 
-            spriteBatch.Draw(Texture, Position, sourceRectangle, Color.White,
+            spriteBatch.Draw(Texture, Position, sourceRectangle, sky,
                 rotation, origin, 1, SpriteEffects.None, 0f);
         }
 
