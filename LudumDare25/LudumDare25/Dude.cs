@@ -111,17 +111,17 @@ namespace LudumDare25
             else
             {
                 frames += 1; //increase framecounter
-                if (happy > 0 && posInc > 0 && Position.X > -4 && inCrowd && rotation == 0) //move dude right till in position
+                if (happy > 0 && posInc > 0 && Position.X > -16 && inCrowd && rotation == 0) //move dude right till in position
                 {
                     Position = new Vector2(Position.X + random.Next(2) + 1, Position.Y + (int)random.NextDouble());
                     posInc -= 1;
                 }
-                else if ((happy < 1 || !inCrowd) && Position.X > -4 && rotation == 0) //if unhappy move off screen
+                else if ((happy < 1 || !inCrowd) && Position.X > -16 && rotation == 0) //if unhappy move off screen
                 {
                     Position = new Vector2(Position.X - 1, Position.Y);
                     posInc += random.Next(2);
                 }
-                else if (happy < 1 && Position.X <= -4 && inCrowd) //if off screen remove from crowd
+                else if (happy < 1 && Position.X <= -16 && inCrowd) //if off screen remove from crowd
                 {
                     inCrowd = false;
                     happy = 0;

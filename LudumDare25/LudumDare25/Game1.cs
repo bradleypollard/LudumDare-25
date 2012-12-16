@@ -20,8 +20,10 @@ namespace LudumDare25
         SpriteBatch spriteBatch;
         ParticleEngine particleEngine;
         Crowd crowd;
-        private int directionX = -10;
-        private int directionY = 10;
+        private int directionX;
+        private int directionTitle;
+        private int directionEnd;
+        private int directionY;
         private SpriteFont font;
         private Texture2D BG;
         private List<Texture2D> dudes;
@@ -37,12 +39,24 @@ namespace LudumDare25
         private List<SoundEffect> thunder;
         private SoundEffectInstance rain;
         private SoundEffectInstance wind;
+        private double score;
+        private double timeCounter;
+        private bool title;
+        private Texture2D TitleScreen;
+        private Texture2D titleBG;
+        ParticleEngine titleEngine;
+        private bool gameOver;
+        private Texture2D End;
+        private Texture2D EndBG;
+        LeafEngine endEngine;
+        Song song;
+        TimeSpan songLength;
 
         public Ludo()
         {
             graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
-            this.Window.Title = "The British Weather";
+            this.Window.Title = "The ''Great'' British Weather";
             graphics.PreferredBackBufferWidth = 800;  // set this value to the desired width of your window
             graphics.PreferredBackBufferHeight = 500;   // set this value to the desired height of your window
             graphics.ApplyChanges();
@@ -80,9 +94,11 @@ namespace LudumDare25
             List<Texture2D> textures = new List<Texture2D>();
             textures.Add(Content.Load<Texture2D>("circle"));
             particleEngine = new ParticleEngine(textures, new Vector2(400, 150));
+            titleEngine = new ParticleEngine(textures, new Vector2(400, -10));
             textures = new List<Texture2D>();
             textures.Add(Content.Load<Texture2D>("leaf"));
             leafEngine = new LeafEngine(textures, new Vector2(860, 200));
+            endEngine = new LeafEngine(textures, new Vector2(860, 200));
 
             //text and other var
             font = Content.Load<SpriteFont>("Font1");
@@ -91,6 +107,18 @@ namespace LudumDare25
             light = Content.Load<Texture2D>("Light1");
             dudeHit = -1;
             bar0 = Content.Load<Texture2D>("Bar/Bar00");
+            timeCounter = 0;
+            score = 0;
+            directionX = -10;
+            directionY = 10;
+            directionTitle = -20;
+            directionEnd = 20;
+            title = true;
+            TitleScreen = Content.Load<Texture2D>("TitleScreen2");
+            titleBG = Content.Load<Texture2D>("TitleBG");
+            gameOver = false;
+            End = Content.Load<Texture2D>("GameOver1");
+            EndBG = Content.Load<Texture2D>("GameOverBG");
 
             //happy bar
             bars = new List<Texture2D>();
@@ -121,9 +149,12 @@ namespace LudumDare25
             thunder.Add(Content.Load<SoundEffect>("Sound/Thunder3"));
             rain = Content.Load<SoundEffect>("Sound/Rain").CreateInstance();
             rain.IsLooped = true;
+            rain.Play();
             wind = Content.Load<SoundEffect>("Sound/Wind").CreateInstance();
             wind.IsLooped = true;
             wind.Volume = 0.7f;
+            song = Content.Load<Song>("Parity_Bit");
+            songLength = song.Duration;
         }
 
         /// <summary>
@@ -138,42 +169,61 @@ namespace LudumDare25
         private void UpdateInput()
         {
             KeyboardState newState = Keyboard.GetState();
-
-            if (oldState.IsKeyUp(Keys.R) && newState.IsKeyDown(Keys.R))
+            if (title)
             {
-                if (player.isRaining)
+                if (oldState.IsKeyUp(Keys.Enter) && newState.IsKeyDown(Keys.Enter))
                 {
-                    player.isRaining = false;
+                    title = false;
                     rain.Stop();
-                }
-                else
-                {
-                    player.isRaining = true;
-                    rain.Play();
+                    MediaPlayer.Play(song);
                 }
             }
-            if (oldState.IsKeyUp(Keys.S) && newState.IsKeyDown(Keys.S))
+            else if (gameOver)
             {
-                if (player.isLightening)
+                if (oldState.IsKeyUp(Keys.Enter) && newState.IsKeyDown(Keys.Enter))
                 {
-                    player.isLightening = false;
-                }
-                else
-                {
-                    player.isLightening = true;
-                }
-            }
-            if (oldState.IsKeyUp(Keys.W) && newState.IsKeyDown(Keys.W))
-            {
-                if (player.isWind)
-                {
-                    player.isWind = false;
                     wind.Stop();
+                    Reset();
                 }
-                else
+            }
+            else
+            {
+                if (oldState.IsKeyUp(Keys.R) && newState.IsKeyDown(Keys.R))
                 {
-                    player.isWind = true;
-                    wind.Play();
+                    if (player.isRaining)
+                    {
+                        player.isRaining = false;
+                        rain.Stop();
+                    }
+                    else
+                    {
+                        player.isRaining = true;
+                        rain.Play();
+                    }
+                }
+                if (oldState.IsKeyUp(Keys.S) && newState.IsKeyDown(Keys.S))
+                {
+                    if (player.isLightening)
+                    {
+                        player.isLightening = false;
+                    }
+                    else
+                    {
+                        player.isLightening = true;
+                    }
+                }
+                if (oldState.IsKeyUp(Keys.W) && newState.IsKeyDown(Keys.W))
+                {
+                    if (player.isWind)
+                    {
+                        player.isWind = false;
+                        wind.Stop();
+                    }
+                    else
+                    {
+                        player.isWind = true;
+                        wind.Play();
+                    }
                 }
             }
 
@@ -191,53 +241,123 @@ namespace LudumDare25
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed)
                 this.Exit();
 
+            //check if game has eneded
+            if ((crowd.count == 0 || MediaPlayer.PlayPosition.TotalSeconds >= songLength.TotalSeconds - 1) && !gameOver)
+            {
+                gameOver = true;
+                rain.Stop();
+                MediaPlayer.Stop();
+                player.isRaining = false;
+                player.isLightening = false;
+                player.isWind = false;
+                wind.Play();
+            }
+
             UpdateInput();
 
-            if (player.isRaining) //calc emmiter pos
+            if (gameOver)
             {
-                if (particleEngine.EmitterLocation.X > 500)
+                if (endEngine.EmitterLocation.Y > 300)
                 {
-                    directionX = -10;
+                    directionEnd = -20;
                 }
-                else if (particleEngine.EmitterLocation.X < 200)
+                else if (endEngine.EmitterLocation.Y < 50)
                 {
-                    directionX = 10;
+                    directionEnd = 20;
                 }
-                particleEngine.EmitterLocation = new Vector2(particleEngine.EmitterLocation.X + directionX, particleEngine.EmitterLocation.Y);
-                
+                endEngine.EmitterLocation = new Vector2(endEngine.EmitterLocation.X, endEngine.EmitterLocation.Y + directionEnd);
+
+                endEngine.Update(true);
             }
-
-            particleEngine.Update(player.isWind, player.isRaining); //update rain
-
-            if (player.isLightening && dudeHit == -1) //try to attack a dude if one isn't hit
+            if (title)
             {
-                dudeHit = crowd.Lightening(thunder);
-                if (dudeHit != -1)
+                if (titleEngine.EmitterLocation.X > 800)
                 {
-                    lightening = 1;
+                    directionTitle = -20;
                 }
-            }
+                else if (titleEngine.EmitterLocation.X < 0)
+                {
+                    directionTitle = 20;
+                }
+                titleEngine.EmitterLocation = new Vector2(titleEngine.EmitterLocation.X + directionTitle, titleEngine.EmitterLocation.Y);
 
-            if (player.isWind) // update wind pos
+                titleEngine.Update(false, true);
+            }
+            else
             {
-                if (leafEngine.EmitterLocation.Y > 250)
+                if (player.isRaining) //calc emmiter pos
                 {
-                    directionY = -10;
+                    if (particleEngine.EmitterLocation.X > 500)
+                    {
+                        directionX = -10;
+                    }
+                    else if (particleEngine.EmitterLocation.X < 200)
+                    {
+                        directionX = 10;
+                    }
+                    particleEngine.EmitterLocation = new Vector2(particleEngine.EmitterLocation.X + directionX, particleEngine.EmitterLocation.Y);
+
                 }
-                else if (leafEngine.EmitterLocation.Y < 150)
+
+                particleEngine.Update(player.isWind, player.isRaining); //update rain
+
+                if (player.isLightening && dudeHit == -1) //try to attack a dude if one isn't hit
                 {
-                    directionY = 10;
+                    dudeHit = crowd.Lightening(thunder);
+                    if (dudeHit != -1)
+                    {
+                        lightening = 1;
+                    }
                 }
-                leafEngine.EmitterLocation = new Vector2(leafEngine.EmitterLocation.X, leafEngine.EmitterLocation.Y + directionY);
-                
-                crowd.Wind();
+
+                if (player.isWind) // update wind pos
+                {
+                    if (leafEngine.EmitterLocation.Y > 250)
+                    {
+                        directionY = -10;
+                    }
+                    else if (leafEngine.EmitterLocation.Y < 150)
+                    {
+                        directionY = 10;
+                    }
+                    leafEngine.EmitterLocation = new Vector2(leafEngine.EmitterLocation.X, leafEngine.EmitterLocation.Y + directionY);
+
+                    crowd.Wind();
+                }
+
+                leafEngine.Update(player.isWind); //update wind
+
+                crowd.Update(); //update crowd
+                if (!gameOver)
+                {
+                    if (timeCounter % 60 == 0) //update scorer
+                    {
+                        score += crowd.happy;
+                    }
+                    timeCounter += 1;
+                }
             }
-
-            leafEngine.Update(player.isWind); //update wind
-
-            crowd.Update(); //update crowd
 
             base.Update(gameTime);
+        }
+
+        public void Reset()
+        {
+            lightening = 0;
+            dudeHit = -1;
+            timeCounter = 0;
+            score = 0;
+            directionX = -10;
+            directionTitle = -20;
+            directionEnd = 20;
+            directionY = 10;
+            wind.Stop();
+            rain.Stop();
+            player = new Cloud(clouds);
+            crowd = new Crowd(50, dudes, player);
+            title = true;
+            gameOver = false;
+            rain.Play();
         }
 
         /// <summary>
@@ -246,58 +366,84 @@ namespace LudumDare25
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.DeepSkyBlue);
-            
-            //render bg
-            spriteBatch.Begin();
-            spriteBatch.Draw(BG, new Vector2(0,0), Color.White);
-            spriteBatch.End();
+            GraphicsDevice.Clear(Color.BlanchedAlmond);
 
-            //render classes
-            particleEngine.Draw(spriteBatch);
-            leafEngine.Draw(spriteBatch);
-            crowd.Draw(spriteBatch);
-            player.Draw(spriteBatch);
-
-            spriteBatch.Begin();
-
-            //fps
-            float frameRate = 1 / (float)gameTime.ElapsedGameTime.TotalSeconds;
-            string fps = "FPS: " + frameRate;
-            spriteBatch.DrawString(font, fps, new Vector2(10, 10), Color.Black);
-
-            //happy bar
-            string happyLabel = "Happiness: " + (int)crowd.happy + "%";
-            spriteBatch.DrawString(font, happyLabel, new Vector2(510, 10), Color.Black);
-            if (crowd.happy > 0)
+            if (title) //different render for titlescreen
             {
-                spriteBatch.Draw(bars[(int)(crowd.happy - 0.1) / 10], new Vector2(650, 10), Color.White);
+                spriteBatch.Begin();
+                spriteBatch.Draw(titleBG, new Vector2(0, 0), Color.White);
+                spriteBatch.End();
+                titleEngine.Draw(spriteBatch);
+                spriteBatch.Begin();
+                spriteBatch.Draw(TitleScreen, new Vector2(0, 0), Color.White);
+                spriteBatch.End();
+            }
+            else if (gameOver)
+            {
+                spriteBatch.Begin();
+                spriteBatch.Draw(EndBG, new Vector2(0, 0), Color.White); //draw bg
+                spriteBatch.End();
+                endEngine.Draw(spriteBatch); //draw leaves
+                spriteBatch.Begin();
+                double finalscore = 1000 * crowd.count * (1 / (score / (timeCounter / 60)));//calc score
+                string endLabel = "You scored: " + (int)finalscore;
+                spriteBatch.DrawString(font, endLabel, new Vector2(250, 250), Color.Black);
+                spriteBatch.Draw(End, new Vector2(0, 0), Color.White); //draw overlay
+                spriteBatch.End();
             }
             else
             {
-                spriteBatch.Draw(bar0, new Vector2(650, 10), Color.White);
-            }
+                //render bg
+                spriteBatch.Begin();
+                spriteBatch.Draw(BG, new Vector2(0, 0), Color.White);
+                spriteBatch.End();
 
-            //people remaining
-            string peopleLabel = "People left: " + crowd.count;
-            spriteBatch.DrawString(font, peopleLabel, new Vector2(550, 30), Color.Black);
+                //render classes
+                particleEngine.Draw(spriteBatch);
+                leafEngine.Draw(spriteBatch);
+                crowd.Draw(spriteBatch);
+                player.Draw(spriteBatch);
 
-            if (lightening > 6) //draw lightening strikes
-            {
-                lightening = 0;
-                dudeHit = -1;
-            }
-            else if (lightening > 0)
-            {
-                for (int i = 0; i < lightening; i++)
+                spriteBatch.Begin();
+
+                //fps
+                float frameRate = 1 / (float)gameTime.ElapsedGameTime.TotalSeconds;
+                string fps = "FPS: " + frameRate;
+                spriteBatch.DrawString(font, fps, new Vector2(10, 10), Color.Black);
+
+                //happy bar
+                string happyLabel = "Happiness: " + (int)crowd.happy + "%";
+                spriteBatch.DrawString(font, happyLabel, new Vector2(510, 10), Color.Black);
+                if (crowd.happy > 0)
                 {
-                    spriteBatch.Draw(light, new Vector2(dudeHit, 200 + 32 * i), Color.White);
+                    spriteBatch.Draw(bars[(int)(crowd.happy - 0.1) / 10], new Vector2(660, 10), Color.White);
                 }
-                lightening += 1;
-            }
-            
+                else
+                {
+                    spriteBatch.Draw(bar0, new Vector2(660, 10), Color.White);
+                }
 
-            spriteBatch.End();
+                //people remaining
+                string peopleLabel = "People left: " + crowd.count;
+                spriteBatch.DrawString(font, peopleLabel, new Vector2(550, 30), Color.Black);
+
+                if (lightening > 6) //draw lightening strikes
+                {
+                    lightening = 0;
+                    dudeHit = -1;
+                }
+                else if (lightening > 0)
+                {
+                    for (int i = 0; i < lightening; i++)
+                    {
+                        spriteBatch.Draw(light, new Vector2(dudeHit, 200 + 32 * i), Color.White);
+                    }
+                    lightening += 1;
+                }
+
+
+                spriteBatch.End();
+            }
 
             base.Draw(gameTime);
         }
