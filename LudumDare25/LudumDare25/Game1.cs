@@ -57,6 +57,8 @@ namespace LudumDare25
         private int[] speechIndex = new int[2];
         private bool speechDrawn;
         private double speechCounter;
+        private int splash;
+        private Texture2D splashScreen;
 
         public Ludo()
         {
@@ -123,10 +125,12 @@ namespace LudumDare25
             title = true;
             TitleScreen = Content.Load<Texture2D>("TitleScreen2");
             titleBG = Content.Load<Texture2D>("TitleBG");
+            splashScreen = Content.Load<Texture2D>("Splash");
             gameOver = false;
             End = Content.Load<Texture2D>("GameOver1");
             EndBG = Content.Load<Texture2D>("GameOverBG");
             sky = Color.White;
+            splash = 1;
 
             //happy bar
             bars = new List<Texture2D>();
@@ -194,9 +198,17 @@ namespace LudumDare25
             {
                 if (oldState.IsKeyUp(Keys.Enter) && newState.IsKeyDown(Keys.Enter))
                 {
-                    title = false;
-                    rain.Stop();
-                    MediaPlayer.Play(song);
+                    if (splash == 1)
+                    {
+                        splash = 2;
+                    }
+                    else
+                    {
+                        splash = 0;
+                        title = false;
+                        rain.Stop();
+                        MediaPlayer.Play(song);
+                    }
                 }
             }
             else if (gameOver)
@@ -413,6 +425,17 @@ namespace LudumDare25
             sky = Color.White;
         }
 
+        public string GetTime(TimeSpan timeSpan)
+        {
+            int minutes = timeSpan.Minutes;
+            int seconds = timeSpan.Seconds;
+
+            if (seconds < 10)
+                return minutes + ":0" + seconds;
+            else
+                return minutes + ":" + seconds;
+        }
+
         /// <summary>
         /// This is called when the game should draw itself.
         /// </summary>
@@ -428,7 +451,44 @@ namespace LudumDare25
                 spriteBatch.End();
                 titleEngine.Draw(spriteBatch);
                 spriteBatch.Begin();
-                spriteBatch.Draw(TitleScreen, new Vector2(0, 0), Color.White);
+                if (splash == 2)
+                {
+                    spriteBatch.Draw(splashScreen, new Vector2(0, 0), Color.White);
+                    //intro
+                    string intro = "You are an every-day villain that any British person will know well: the weather!";
+                    spriteBatch.DrawString(font, intro, new Vector2(20, 90), Color.White);
+                    intro = "Your objective is to make the crowd of festival goers have the worst time possible - ";
+                    spriteBatch.DrawString(font, intro, new Vector2(20, 120), Color.White);
+                    intro = "without making them leave before the end of the band's set!";
+                    spriteBatch.DrawString(font, intro, new Vector2(20, 150), Color.White);
+                    intro = "You can't have any fun if no-ones around, right?";
+                    spriteBatch.DrawString(font, intro, new Vector2(20, 180), Color.White);
+                    intro = "To achieve this you have the power of rain, wind and thunder storms on your side:";
+                    spriteBatch.DrawString(font, intro, new Vector2(20, 210), Color.White);
+                    //desc
+                    intro = "Everyone dislikes rain. Not";
+                    spriteBatch.DrawString(font, intro, new Vector2(5, 320), new Color(122,154,209));
+                    intro = "as much as other conditions,";
+                    spriteBatch.DrawString(font, intro, new Vector2(5, 350), new Color(122, 154, 209));
+                    intro = "but enough to ruin their day.";
+                    spriteBatch.DrawString(font, intro, new Vector2(5, 380), new Color(122, 154, 209));
+                    intro = "A few people hate storms. Really";
+                    spriteBatch.DrawString(font, intro, new Vector2(255, 320), new Color(255, 194, 14));
+                    intro = "hate them. And if someone is hit";
+                    spriteBatch.DrawString(font, intro, new Vector2(255, 350), new Color(255, 194, 14));
+                    intro = "by lightning, they're gone!";
+                    spriteBatch.DrawString(font, intro, new Vector2(255, 380), new Color(255, 194, 14));
+                    intro = "A lot of people can't stand the";
+                    spriteBatch.DrawString(font, intro, new Vector2(540, 320), new Color(157, 187, 97));
+                    intro = "wind. In fact, if someone is";
+                    spriteBatch.DrawString(font, intro, new Vector2(540, 350), new Color(157, 187, 97));
+                    intro = "blown over, they get real mad!";
+                    spriteBatch.DrawString(font, intro, new Vector2(540, 380), new Color(157, 187, 97));
+                }
+                else
+                {
+                    spriteBatch.Draw(TitleScreen, new Vector2(0, 0), Color.White);
+                }
                 spriteBatch.End();
             }
             else if (gameOver)
@@ -452,7 +512,7 @@ namespace LudumDare25
                 }
                 else if (finalscore < 1000 && (score / (timeCounter / 60) > 40))
                 {
-                    endLabel = "Everyone was way too happy! Remember, rain makes everyone unhappy.";
+                    endLabel = "The crowd was way too happy! Remember, rain makes everyone unhappy.";
                     spriteBatch.DrawString(font, endLabel, new Vector2(90, 350), Color.Black);
                 }
                 else if (finalscore < 1000)
@@ -460,17 +520,17 @@ namespace LudumDare25
                     endLabel = "Your score is almost as bad as the weather! Try to scare less people off.";
                     spriteBatch.DrawString(font, endLabel, new Vector2(70, 350), Color.Black);
                 }
-                else if (finalscore < 1500)
+                else if (finalscore < 2000)
                 {
                     endLabel = "Not totally awful. Note that if wind knocks someone down, they get really unhappy!";
                     spriteBatch.DrawString(font, endLabel, new Vector2(30, 350), Color.Black);
                 }
-                else if (finalscore < 2000)
+                else if (finalscore < 2500)
                 {
                     endLabel = "Better - try to keep as many people at the gig for a higher multiplier!";
                     spriteBatch.DrawString(font, endLabel, new Vector2(90, 350), Color.Black);
                 }
-                else if (finalscore < 2500)
+                else if (finalscore < 3000)
                 {
                     endLabel = "You nearly ruined everyone's day - awesome! Lightning can remove someone instantly.";
                     spriteBatch.DrawString(font, endLabel, new Vector2(30, 350), Color.Black);
@@ -480,6 +540,10 @@ namespace LudumDare25
                     endLabel = "Now that's what I call British weather! Everyone had a terrible time.";
                     spriteBatch.DrawString(font, endLabel, new Vector2(110, 350), Color.Black);
                 }
+                endLabel = "Press enter to restart, or escape to quit.";
+                spriteBatch.DrawString(font, endLabel, new Vector2(10, 470), Color.IndianRed);
+                endLabel = "Bradley Pollard 2012";
+                spriteBatch.DrawString(font, endLabel, new Vector2(610, 470), Color.IndianRed);
                 spriteBatch.Draw(End, new Vector2(0, 0), Color.White); //draw overlay
                 spriteBatch.End();
             }
@@ -517,7 +581,11 @@ namespace LudumDare25
 
                 //people remaining
                 string peopleLabel = "People left: " + crowd.count;
-                spriteBatch.DrawString(font, peopleLabel, new Vector2(550, 30), Color.Black);
+                spriteBatch.DrawString(font, peopleLabel, new Vector2(665, 30), Color.Black);
+
+                //time remaining
+                string timeleft = "Time left: " + GetTime(songLength.Subtract(MediaPlayer.PlayPosition));
+                spriteBatch.DrawString(font, timeleft, new Vector2(667, 50), Color.Black);
 
                 if (lightening > 6) //draw lightening strikes
                 {
